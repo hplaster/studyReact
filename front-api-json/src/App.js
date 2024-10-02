@@ -11,14 +11,35 @@ function App() {
   const [turma, setTurma] = useState([])
   const [ano, setAno] = useState()
 
+  const [loading, setLoading] = useState(false)
+
   //Função que adiciona os alunos após o clique
   const handleSubmit = async (e) => {
+    e.preventDefault()
+    
+    const aluno = {nome, turma, ano}
+    
+    // Envia a requisição com os dados do aluno
+    const res = await fetch(url, {
+      method:"POST",
+      headers: {"Content-type": "application-json"},
+      body: JSON.stringify(aluno)
+    })
 
+    // Atualiza a lista de alunos na tela do cliente
+    const alunoAdicionado = await res.json()
+    setAlunos((prevAlunos) => [...prevAlunos, alunoAdicionado])
+    setNome("")
+    setTurma("")
+    setAno("")
   }
+
 
   //Buscar dados da API
   useEffect( () => {
     async function fetchData() {
+      setLoading(true)
+
       //Busca os dados
       const res = await fetch(url)
       
@@ -26,6 +47,8 @@ function App() {
       const data = await res.json()
 
       setAlunos(data);
+
+      setLoading(false)
     }
     fetchData()
     //console.log(alunos)
@@ -33,9 +56,9 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Cadastrar Aluno</h1>
       
       <div className='add-aluno'>
+        <h1>Cadastrar Aluno</h1>
         <form onSubmit={handleSubmit}>
           <label>
             Aluno:
@@ -47,20 +70,25 @@ function App() {
           </label>
           <label>
             Ano:
-            <input type="text" value={ano} name='ano' onChange={(e) => {setAno(Number(e.target.value))}}/>
+            <input type="number" value={ano} name='ano' onChange={(e) => {setAno(Number(e.target.value))}}/>
           </label>
           <input type="submit" value="Adicionar" className='btn'/>
         </form>
       </div>
 
-      <h1>Lista de Alunos</h1>
-      <ul>
-        {alunos.map( (aluno) => (
-          <li key={aluno.id}>
-            Aluno: {aluno.nome} - Turma: {aluno.turma} - Ano: {aluno.ano_escolar}
-          </li>
-        ))}
-      </ul>
+      <div className='lista-alunos'>
+        <h1>Lista de Alunos</h1>
+        {loading && <h3>Carregando lista...</h3>}
+        {!loading &&
+        <ul>
+          {alunos.map( (aluno) => (
+            <li key={aluno.id}>
+              Aluno: {aluno.nome} - Turma: {aluno.turma} - Ano: {aluno.ano_escolar}
+            </li>
+          ))}
+        </ul>}
+      </div>
+      
     </div>
   );
 }
